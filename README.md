@@ -1,11 +1,15 @@
-Dockerfile Readme: Neuroimaging Analysis Environment
-This README provides an overview of the Dockerfile used to build a neuroimaging analysis environment. The Dockerfile is designed to set up a comprehensive environment with various tools and libraries for neuroimaging analysis, including MRtrix3, FreeSurfer, FSL, AFNI, and more.
+README for Dockerfile: Neuroimaging Analysis Environment Setup
+This README details the Dockerfile used for setting up a neuroimaging analysis environment. The Dockerfile is tailored for neuroimaging research and includes various tools and libraries essential in this field.
 
+Overview
+The Dockerfile starts from a base development image and installs numerous dependencies and neuroimaging tools. It covers everything from basic utilities to specific neuroimaging packages like FreeSurfer, FSL, and AFNI. The environment variables are set for each tool, ensuring seamless integration and functionality within the Docker container.
+
+Dockerfile Breakdown
 Base Image
 FROM base:dev
-The Dockerfile begins with a base:dev image, which is a development base image containing the essential tools and libraries.
+We start with base:dev as our base image, providing a solid foundation with essential tools and libraries.
 
-Installation of Dependencies
+Installing Dependencies
 RUN apt-get update && \
     apt install -y npm && \
     apt install -y libeigen3-dev && \
@@ -17,14 +21,14 @@ RUN apt-get update && \
     pip install pillow pyqt5 pyvistaqt fury dipy nibabel nipype pydicom && \
     pip install darkdetect mne mne_connectivity ipywidgets ipyevents h5py && \
     pip install fmriprep
-This section installs a series of dependencies crucial for neuroimaging analysis. These include npm, Eigen3, Qt libraries, Python packages like ITK, SciPy, Pandas, scikit-learn, scikit-image, Pillow, PyQt5, and neuroimaging tools like MRtrix3, DIPY, Nibabel, NiPype, PyDicom, MNE, and fmriprep.
+This section installs necessary packages including npm, various libraries like Eigen3, Qt, and Python packages essential for neuroimaging like MRtrix3, ITK, DIPY, and fmriprep.
 
-Copying Software Packages
-WORKID /tmp
+Copying Required Software Packages
+WORKDIR /tmp
 COPY MRIPackages /tmp
-The Dockerfile then copies MRI packages into the /tmp directory of the container.
+MRI packages required for the environment are copied into the /tmp directory.
 
-Installation of Neuroimaging Tools
+Setting Up Neuroimaging Tools
 RUN tar -xzvf freesurfer-linux-ubuntu22_amd64-7.3.2.tar.gz -C /opt && \
     rm freesurfer-linux-ubuntu22_amd64-7.3.2.tar.gz && \
     unzip -d /opt/ workbench-linux64-v1.5.0.zip && \
@@ -33,23 +37,27 @@ RUN tar -xzvf freesurfer-linux-ubuntu22_amd64-7.3.2.tar.gz -C /opt && \
     python3 fslinstaller.py -V 6.0.6.2  -d /opt/fsl && \
     rm -rf /opt/fsl/src && \
     tar -xvf node-v20.11.0-linux-x64.tar.xz -C /opt
-This section handles the installation of FreeSurfer, Workbench, BIDS Validator, and FSL. It also installs Node.js for further dependencies.
+Installs and configures FreeSurfer, Workbench, BIDS Validator, FSL, and Node.js.
 
-Environment Variables and Path Settings
-WORKID /opt/node-v20.11.0-linux-x64
-RUN cp -r * /usr/local
-ENV PATH=/usr/local/bin/node:$PATH
-Node.js is set up and its path is configured.
-WORKID /opt/bids-validator-1.8.0
+Setting Environment Variables
+Various environment variables are set for Node.js, FreeSurfer, FSL, ANTs, DSI-Studio, and other tools.
+
+Installation of bids-validator
+WORKDIR /opt/bids-validator-1.8.0
 RUN npm install -g bids-validator
-The BIDS Validator is installed globally using npm.
-WORKID /opt/freesurfer/bin
+Globally installs the BIDS Validator.
+
+Installation of MCR and Setting Up FreeSurfer
+WORKDIR /opt/freesurfer/bin
 RUN ./fs_install_mcr R2019b
-The MATLAB Compiler Runtime (MCR) for FreeSurfer is installed.
+ENV FREESURFER_HOME=/opt/freesurfer
+ENV PATH=/opt/freesurfer/bin:$PATH
+Installs MATLAB Compiler Runtime for FreeSurfer and sets up the environment for FreeSurfer.
 
-Environment variables are set for FreeSurfer, Workbench, FSL, ANTs, DSI-Studio, and AFNI to ensure these tools are integrated correctly and accessible within the Docker environment.
+Additional Environment Variable Settings
+Sets up environment variables for Workbench, FSL, ANTs, DSI-Studio, and AFNI.
 
-Final Steps
+Installing AFNI and Related Dependencies
 RUN apt-get install -y --no-install-recommends \
     software-properties-common dirmngr && \
     curl -O https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc && \
@@ -60,15 +68,16 @@ RUN apt-get install -y --no-install-recommends \
     python3-matplotlib python3-numpy
 RUN curl -O https://afni.nimh.nih.gov/pub/dist/bin/misc/@update.afni.binaries
 RUN tcsh @update.afni.binaries -package linux_ubuntu_16_64 -do_extras -bindir /opt/afni
-Additional tools and libraries are installed, including Python 3, Matplotlib, NumPy, and AFNI.
+Installs AFNI along with necessary Python packages and additional dependencies.
+
+Final Configuration
 ENV R_LIBS="/opt/R"
 RUN mkdir $R_LIBS
 ENV PATH="$PATH:/opt/afni"
 RUN rPkgsInstall -pkgs ALL
-R environment setup and installation of R packages.
 RUN cp /opt/afni/AFNI.afnirc ~/.afnirc && \
     suma -update_env && \
     apsearch -update_all_afni_help
-Final configuration steps for AFNI, including updating environment settings and AFNI help files.
+Sets up the R environment, installs all R packages, and performs the final configuration for AFNI.
 
-This Dockerfile provides a comprehensive setup for a neuroimaging analysis environment, integrating several tools and libraries necessary for processing and analyzing neuroimaging data.
+This Dockerfile is tailored for creating a comprehensive neuroimaging analysis environment, integrating a wide range of tools and libraries necessary for processing and analyzing neuroimaging data.

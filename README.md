@@ -23,16 +23,17 @@ The Dockerfile installs a diverse range of tools and libraries for neuroimaging:
 ## Building the Image
 To build the image, run:
 docker build -t neuroimaging_tools:latest .
-Running the Container
+## Running the Container
 To run the container:
 docker run -it neuroimaging_tools:latest /bin/bash
-Environmental Variables
+
+## Environmental Variables
 The Dockerfile sets environment variables for tools:
 
-PATH: Includes Node.js, FreeSurfer, Workbench, FSL, ANTs, DSI-Studio
-FREESURFER_HOME, FSLDIR, FSLOUTPUTTYPE, FSLMULTIFILEQUIT, FSLTCLSH, FSLWISH, FSLGECUDAQ, FSL_LOAD_NIFTI_EXTENSIONS, FSL_SKIP_GLOBAL
-ANTSPATH, DSISTUDIOPATH
-R_LIBS
+- **PATH: Includes Node.js, FreeSurfer, Workbench, FSL, ANTs, DSI-Studio**
+- **FREESURFER_HOME, FSLDIR, FSLOUTPUTTYPE, FSLMULTIFILEQUIT, FSLTCLSH, FSLWISH, FSLGECUDAQ, FSL_LOAD_NIFTI_EXTENSIONS, FSL_SKIP_GLOBAL**
+- **ANTSPATH, DSISTUDIOPATH**
+- **R_LIBS**
 Tool-Specific Configurations
 FreeSurfer, FSL, ANTs: Installed with environment variables
 Node.js and BIDS Validator: Path included in PATH

@@ -1,35 +1,30 @@
-Docker Image for Neuroimaging Tools
+# Docker Image for Neuroimaging Tools
 This Dockerfile builds a Docker image containing a comprehensive set of neuroimaging and processing tools, perfect for advanced neuroimaging analysis. It is based on the base:dev image and includes tools like MRtrix3, FreeSurfer, FSL, ANTs, DSI-Studio, and more, along with Python libraries and Node.js.
 
-Tools and Libraries Included
+## Tools and Libraries Included
 The Dockerfile installs a diverse range of tools and libraries for neuroimaging:
 
-NPM (Node Package Manager)
-Libraries: Eigen3, Qt5, and Qt6
-MRtrix3
-ITK (Insight Segmentation and Registration Toolkit)
-Python libraries: scipy, pandas, scikit-learn, scikit-image, pillow, pyqt5, pyvistaqt, fury, dipy, nibabel, nipype, pydicom, darkdetect, mne, mne_connectivity, ipywidgets, ipyevents, h5py, fmriprep
-FreeSurfer
-Connectome Workbench
-BIDS Validator
-Node.js
-BIDS Validator (Node.js version)
-MATLAB Runtime (MCR) for FreeSurfer
-ANTs (Advanced Normalization Tools)
-DSI-Studio
-AFNI (Analysis of Functional NeuroImages)
-R and related packages for AFNI
-Building the Image
-To build the image, run:
+- **NPM (Node Package Manager)**
+- **NPM Libraries: Eigen3, Qt5, and Qt6**
+- **MRtrix3**
+- **ITK (Insight Segmentation and Registration Toolkit)**
+- **Python libraries: scipy, pandas, scikit-learn, scikit-image, pillow, pyqt5, pyvistaqt, fury, dipy, nibabel, nipype, pydicom, darkdetect, mne, mne_connectivity, ipywidgets, ipyevents, h5py, fmriprep**
+- **FreeSurfer**
+- **Connectome Workbench**
+- **BIDS Validator**
+- **Node.js**
+- **BIDS Validator (Node.js version)**
+- **MATLAB Runtime (MCR) for FreeSurfer**
+- **ANTs (Advanced Normalization Tools)**
+- **DSI-Studio**
+- **AFNI (Analysis of Functional NeuroImages)**
+- **R and related packages for AFNI**
 
-bash
-Copy code
+## Building the Image
+To build the image, run:
 docker build -t neuroimaging_tools:latest .
 Running the Container
 To run the container:
-
-bash
-Copy code
 docker run -it neuroimaging_tools:latest /bin/bash
 Environmental Variables
 The Dockerfile sets environment variables for tools:

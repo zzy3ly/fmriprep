@@ -1,59 +1,74 @@
-# Docker Image for Multi-Gene Analysis Tools
+Dockerfile Readme: Neuroimaging Analysis Environment
+This README provides an overview of the Dockerfile used to build a neuroimaging analysis environment. The Dockerfile is designed to set up a comprehensive environment with various tools and libraries for neuroimaging analysis, including MRtrix3, FreeSurfer, FSL, AFNI, and more.
 
-This Dockerfile is designed to build a Docker image containing various bioinformatics tools used for multi-gene analysis. The image is based on the `conda3:three` base image and includes popular tools such as **FastP**, **FastQC**, **Fqtools**, **BWA**, **AnnotSV**, **Plink**, **GCTA**, **R**, **BreakDancer**, and **GATK4** from the `bioconda` channel. Additionally, it incorporates specific versions of other tools such as **bcftools**, **ANNOVAR**, **samtools**, **ROOT**, **OpenSSL**, and **CNVnator**.
+Base Image
+FROM base:dev
+The Dockerfile begins with a base:dev image, which is a development base image containing the essential tools and libraries.
 
-## Tools Included
+Installation of Dependencies
+RUN apt-get update && \
+    apt install -y npm && \
+    apt install -y libeigen3-dev && \
+    apt-get install libqt6charts6-dev && \
+    apt install -y qtbase5-dev libqt5opengl5-dev libqt5svg5-dev && \
+    apt-get -y install mrtrix3 && \
+    pip install itk && \
+    pip install scipy pandas scikit-learn scikit-image && \
+    pip install pillow pyqt5 pyvistaqt fury dipy nibabel nipype pydicom && \
+    pip install darkdetect mne mne_connectivity ipywidgets ipyevents h5py && \
+    pip install fmriprep
+This section installs a series of dependencies crucial for neuroimaging analysis. These include npm, Eigen3, Qt libraries, Python packages like ITK, SciPy, Pandas, scikit-learn, scikit-image, Pillow, PyQt5, and neuroimaging tools like MRtrix3, DIPY, Nibabel, NiPype, PyDicom, MNE, and fmriprep.
 
-The Dockerfile installs the following tools:
+Copying Software Packages
+WORKID /tmp
+COPY MRIPackages /tmp
+The Dockerfile then copies MRI packages into the /tmp directory of the container.
 
-- **FastP**
-- **FastQC**
-- **Fqtools**
-- **BWA**
-- **AnnotSV** (version 3.3.6)
-- **Plink**
-- **GCTA**
-- **R**
-- **BreakDancer** (version 1.4.5)
-- **GATK4** (version 4.1.8.1)
-- **bcftools** (version 1.16)
-- **ANNOVAR** (downloaded from [baishujun.com](https://www.baishujun.com/wp-content/uploads/2020/06/2020061107593651.zip))
-- **samtools** (version 1.19)
-- **ROOT** (version 6.22.08)
-- **OpenSSL** (version 1.1.1v)
-- **CNVnator** (version 0.3.2)
+Installation of Neuroimaging Tools
+RUN tar -xzvf freesurfer-linux-ubuntu22_amd64-7.3.2.tar.gz -C /opt && \
+    rm freesurfer-linux-ubuntu22_amd64-7.3.2.tar.gz && \
+    unzip -d /opt/ workbench-linux64-v1.5.0.zip && \
+    tar -xvf bids-validator-1.8.0.tar.gz -C /opt && \
+    rm bids-validator-1.8.0.tar.gz && \
+    python3 fslinstaller.py -V 6.0.6.2  -d /opt/fsl && \
+    rm -rf /opt/fsl/src && \
+    tar -xvf node-v20.11.0-linux-x64.tar.xz -C /opt
+This section handles the installation of FreeSurfer, Workbench, BIDS Validator, and FSL. It also installs Node.js for further dependencies.
 
-## Building the Image
+Environment Variables and Path Settings
+WORKID /opt/node-v20.11.0-linux-x64
+RUN cp -r * /usr/local
+ENV PATH=/usr/local/bin/node:$PATH
+Node.js is set up and its path is configured.
+WORKID /opt/bids-validator-1.8.0
+RUN npm install -g bids-validator
+The BIDS Validator is installed globally using npm.
+WORKID /opt/freesurfer/bin
+RUN ./fs_install_mcr R2019b
+The MATLAB Compiler Runtime (MCR) for FreeSurfer is installed.
 
-To build the Docker image, save the provided Dockerfile, and run the following command:
+Environment variables are set for FreeSurfer, Workbench, FSL, ANTs, DSI-Studio, and AFNI to ensure these tools are integrated correctly and accessible within the Docker environment.
 
-```bash
-docker build -t multi_gene_tools:latest .
+Final Steps
+RUN apt-get install -y --no-install-recommends \
+    software-properties-common dirmngr && \
+    curl -O https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc && \
+    cat /tmp/marutter_pubkey.asc >> /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc && \
+    add-apt-repository -y "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" && \
+    apt-get install -y --no-install-recommends \
+    python-is-python3 && \              
+    python3-matplotlib python3-numpy
+RUN curl -O https://afni.nimh.nih.gov/pub/dist/bin/misc/@update.afni.binaries
+RUN tcsh @update.afni.binaries -package linux_ubuntu_16_64 -do_extras -bindir /opt/afni
+Additional tools and libraries are installed, including Python 3, Matplotlib, NumPy, and AFNI.
+ENV R_LIBS="/opt/R"
+RUN mkdir $R_LIBS
+ENV PATH="$PATH:/opt/afni"
+RUN rPkgsInstall -pkgs ALL
+R environment setup and installation of R packages.
+RUN cp /opt/afni/AFNI.afnirc ~/.afnirc && \
+    suma -update_env && \
+    apsearch -update_all_afni_help
+Final configuration steps for AFNI, including updating environment settings and AFNI help files.
 
-Running the Container
-Once the image is built, you can run a container based on this image using:
-
-docker run -it multi_gene_tools:latest /bin/bash
-
-This command opens an interactive shell within the container, allowing you to execute commands and use the installed tools.
-
-Environmental Variables
-The Dockerfile sets the following environment variables:
-
-PATH: Adds tool directories to the system's executable search path.
-ROOTSYS: Specifies the ROOT installation directory.
-LD_LIBRARY_PATH: Adds library directories to the system's library search path.
-
-Tool-Specific Configurations
-bcftools: Downloads version 1.16 and sets the installation path to /opt/bcftools-1.16.
-ANNOVAR: Downloads from a specific URL and extracts to /opt/ANNOVAR.
-samtools: Downloads version 1.19, configures installation path to /opt/samtools-1.19/, and disables curses and lzma.
-ROOT: Downloads version 6.22.08, extracts to /opt/root, and applies a modification to a specific header file.
-OpenSSL: Downloads version 1.1.1v, configures installation path to /opt/openssl-1.1.1v.
-CNVnator: Downloads version 0.3.2, extracts to /opt/CNVnator_v0.3.2/, creates symbolic links to samtools and ROOT, and compiles samtools.
-
-Important Notes
-Ensure Docker is installed on your system before building and running the container.
-The Dockerfile assumes a Linux-based system, and certain tools may have system-specific dependencies.
-The container starts with an interactive shell, allowing further customization or execution of specific tool commands.
-Feel free to modify the Dockerfile or the provided commands according to your specific requirements or system constraints.
+This Dockerfile provides a comprehensive setup for a neuroimaging analysis environment, integrating several tools and libraries necessary for processing and analyzing neuroimaging data.

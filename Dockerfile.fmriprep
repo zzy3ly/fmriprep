@@ -1,0 +1,95 @@
+FROM base:dev
+
+RUN apt-get update && \
+    apt install -y npm && \
+    apt install -y libeigen3-dev && \
+    apt-get install libqt6charts6-dev && \
+    apt install -y qtbase5-dev libqt5opengl5-dev libqt5svg5-dev && \
+    # mrtrix3
+    apt-get -y install mrtrix3 && \
+    # C3D
+    pip install itk && \
+    # conda create -y --name caffe_env python=3.7
+    # conda activate caffe_env
+    # conda install -y caffe
+    # conda deactivate
+    pip install scipy pandas scikit-learn scikit-image && \
+    pip install pillow pyqt5 pyvistaqt fury dipy nibabel nipype pydicom && \
+    pip install darkdetect mne mne_connectivity ipywidgets ipyevents h5py && \
+    pip install fmriprep
+
+WORKID /tmp
+COPY MRIPackages /tmp
+
+# freesufer
+RUN tar -xzvf freesurfer-linux-ubuntu22_amd64-7.3.2.tar.gz -C /opt && \
+         rm freesurfer-linux-ubuntu22_amd64-7.3.2.tar.gz && \
+         # workbench
+         unzip -d /opt/ workbench-linux64-v1.5.0.zip && \
+         # bids-validator
+         tar -xvf bids-validator-1.8.0.tar.gz -C /opt && \
+         rm bids-validator-1.8.0.tar.gz && \
+         #fsl
+         python3 fslinstaller.py -V 6.0.6.2  -d /opt/fsl && \
+         rm -rf /opt/fsl/src && \
+         # node.js
+         tar -xvf node-v20.11.0-linux-x64.tar.xz -C /opt
+         
+WORKID /opt/node-v20.11.0-linux-x64
+RUN cp -r * /usr/local
+EVN PATH=/usr/local/bin/node:$PATH
+
+WORKID /opt/bids-validator-1.8.0
+RUN npm install -g bids-validator
+
+WORKID /opt/freesurfer/bin
+RUN ./fs_install_mcr R2019b
+# freesurfer
+ENV FREESURFER_HOME=/opt/freesurfer
+ENV PATH=/opt/freesurfer/bin:$PATH
+# workbench
+ENV PATH="$PATH:/opt/workbench/bin_linux64"
+# fsl
+ENV FSLDIR="/opt/fsl"
+ENV PATH="$FSLDIR/share/fsl/bin:$PATH"
+ENV FSLOUTPUTTYPE="NIFTI_GZ"
+ENV FSLMULTIFILEQUIT="TRUE" 
+ENV FSLTCLSH="$FSLDIR/bin/fsltclsh"
+ENV FSLWISH="$FSLDIR/bin/fslwish"
+ENV FSLGECUDAQ="cuda.q"
+ENV FSL_LOAD_NIFTI_EXTENSIONS=0
+ENV FSL_SKIP_GLOBAL=0
+#ANTs
+ENV ANTSPATH=/opt/ants-2.4.4/bin
+ENV PATH=${ANTSPATH}:${PATH}
+ENV ANTSVer="ANTs 2.4.4 in ${ANTSPATH}"
+# DSI-Studio
+ENV DSISTUDIOPATH=/opt/dsi-studio
+ENV PATH=${PATH}:${DSISTUDIOPATH}
+ENV DSISTUDIOVer="DSIStudio 1.8.0 in ${DSISTUDIOPATH}"
+
+# afni
+RUN apt-get install -y --no-install-recommends \
+	software-properties-common dirmngr && \
+         curl -O https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc && \
+         cat /tmp/marutter_pubkey.asc >> /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc && \
+         add-apt-repository -y "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" && \
+         apt-get install -y --no-install-recommends \
+                python-is-python3 && \              
+                python3-matplotlib python3-numpy
+RUN curl -O https://afni.nimh.nih.gov/pub/dist/bin/misc/@update.afni.binaries
+RUN tcsh @update.afni.binaries -package linux_ubuntu_16_64 -do_extras -bindir /opt/afni
+
+ENV R_LIBS="/opt/R"
+RUN mkdir $R_LIBS
+ENV PATH="$PATH:/opt/afni"
+RUN rPkgsInstall -pkgs ALL
+
+RUN cp /opt/afni/AFNI.afnirc ~/.afnirc && \
+    suma -update_env && \
+    apsearch -update_all_afni_help
+
+
+
+
+

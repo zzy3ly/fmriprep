@@ -1,4 +1,4 @@
-# Docker Image for Neuroimaging Tools
+# Docker Image for fmriprep
 This Dockerfile builds a Docker image containing a comprehensive set of neuroimaging and processing tools, perfect for advanced neuroimaging analysis. It is based on the base:dev image and includes tools like MRtrix3, FreeSurfer, FSL, ANTs, DSI-Studio, and more, along with Python libraries and Node.js.
 
 ## Tools and Libraries Included
@@ -34,11 +34,13 @@ The Dockerfile sets environment variables for tools:
 - **FREESURFER_HOME, FSLDIR, FSLOUTPUTTYPE, FSLMULTIFILEQUIT, FSLTCLSH, FSLWISH, FSLGECUDAQ, FSL_LOAD_NIFTI_EXTENSIONS, FSL_SKIP_GLOBAL**
 - **ANTSPATH, DSISTUDIOPATH**
 - **R_LIBS**
-Tool-Specific Configurations
+  
+## Tool-Specific Configurations
 FreeSurfer, FSL, ANTs: Installed with environment variables
 Node.js and BIDS Validator: Path included in PATH
 AFNI: Installed with R and packages
-Notes
+
+## Notes
 Ensure Docker is installed before building/running the container.
 The Dockerfile is designed for Linux-based systems.
 After starting the container, you can customize it or run specific neuroimaging tool commands.
